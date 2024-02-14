@@ -1,0 +1,53 @@
+name: Terraform deploy
+
+on:
+  push:
+    branches:
+        - main
+
+env:
+  AWS_REGION : "eu-west-1"
+
+permissions:
+  id-token: write   
+  contents: read 
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ vars.OIDC_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+            terraform_version: 1.5.7
+
+      - name: Terraform init and validate
+        run: |
+          terraform init
+
+      - name: Terraform plan
+        run: |
+          terraform plan -var="aws_assume_role=${{ vars.AWS_ROLE_ARN }}"
+
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: laysauchoa
+          minimum-approvals: 1
+          issue-title: "Deploying v1.0.0 to prod"
+          issue-body: "Review the terraform plan, then approve or deny the deployment of v1.0.0 to prod."
+          exclude-workflow-initiator-as-approver: false
+
+      - name: Terraform apply
+        run: |
+          terraform apply -var="aws_assume_role=${{ vars.AWS_ROLE_ARN }}"
