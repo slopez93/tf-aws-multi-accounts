@@ -10,7 +10,8 @@ env:
 
 permissions:
   id-token: write   
-  contents: read 
+  contents: read
+  issues: write
 
 jobs:
   deployment:
