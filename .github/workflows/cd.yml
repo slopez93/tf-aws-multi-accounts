@@ -51,4 +51,4 @@ jobs:
 
       - name: Terraform apply
         run: |
-          terraform apply -var="aws_assume_role=${{ vars.AWS_ROLE_ARN }}"
+          terraform apply -auto-approve -var="aws_assume_role=${{ vars.AWS_ROLE_ARN }}"
